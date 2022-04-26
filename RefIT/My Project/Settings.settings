@@ -1,0 +1,51 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="My" GeneratedClassName="MySettings" UseMySettingsClassName="true">
+  <Profiles />
+  <Settings>
+    <Setting Name="CPR" Type="System.String" Scope="User">
+      <Value Profile="(Default)">CPR.nr</Value>
+    </Setting>
+    <Setting Name="ProveDato" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Prv.Dato</Value>
+    </Setting>
+    <Setting Name="Kvantitet" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Kvn</Value>
+    </Setting>
+    <Setting Name="Resultat" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Resultat</Value>
+    </Setting>
+    <Setting Name="Enhed" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Enhed</Value>
+    </Setting>
+    <Setting Name="TidsInterval" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">7</Value>
+    </Setting>
+    <Setting Name="RkvStatus" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Rkv.status</Value>
+    </Setting>
+    <Setting Name="FractilHoj" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">90</Value>
+    </Setting>
+    <Setting Name="FractilLav" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="Notificationemail" Type="System.String" Scope="User">
+      <Value Profile="(Default)">renmigmsn@outlook.dk</Value>
+    </Setting>
+    <Setting Name="Kon" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Køn</Value>
+    </Setting>
+    <Setting Name="Alder" Type="System.String" Scope="User">
+      <Value Profile="(Default)">Alder</Value>
+    </Setting>
+    <Setting Name="IncludeZero" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="Birthday" Type="System.String" Scope="User">
+      <Value Profile="(Default)">DayOfBirth</Value>
+    </Setting>
+    <Setting Name="PerMethod" Type="System.String" Scope="User">
+      <Value Profile="(Default)">C=0 - Excel after v. 2013</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
