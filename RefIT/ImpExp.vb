@@ -18,7 +18,7 @@ Module ImpExp
 
             'Read the first Sheet from Excel file.
             If workBook.Worksheets.Count > 1 Then 'if more than one worksheet in the workbook, select one to load
-                Dim wsarray As New ArrayList() '= workBook.Worksheet().Name.ToArray()
+                Dim wsarray As New ArrayList()
                 For i As Integer = 1 To workBook.Worksheets.Count
                     wsarray.Add(workBook.Worksheet(i).Name)
                 Next
@@ -60,7 +60,7 @@ Module ImpExp
 
 
             If CheckHeaders(ExcelHeaders, Importdt) = False Then
-                Mainmenu.Check = False
+                Mainmenu.Check = False 'terminate loading
             Else
                 Mainmenu.Check = True
             End If
@@ -167,7 +167,9 @@ Module ImpExp
     End Function
 
     Public Sub Export(ByRef filepath As String, ByRef ds As DataSet)
-
+        '*********************************************************************************
+        'Export the result sheets and raw datasheets to excel.
+        '*********************************************************************************
         Try
             Dim ws As IXLWorksheet
 

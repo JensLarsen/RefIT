@@ -11,7 +11,7 @@
         dview.Sort = "_Result_ ASC"
         dt = TryCast(dview.ToTable, DataTable).Copy()
 
-        '******************************************Tukey regl*************************************
+        '******************************************Tukey fences*************************************
         If Mainmenu.Tukey_CHK.Checked = True Then
             Dim totaloutliers As Integer
             Do
@@ -145,16 +145,17 @@
             Application.DoEvents()
         Next
 
-        Middel = Middel / dt.Rows.Count 'Beregn middel værdi
-        SD = STDafv(dt, Middel) 'beregn SD
+        Middel = Middel / dt.Rows.Count 'calculate average
+        SD = STDafv(dt, Middel) 'calculate standard deviation
 
+        '*******************Copy data to datarow**********************************
         NewRow.Item("From Date") = MinDate.ToShortDateString
         NewRow.Item("To Date") = MaxDate.ToShortDateString
-        NewRow.Item("Percentile") = PerQ(0) & " < X < " & PerQ(1) '0,1
-        NewRow.Item("Median") = PerQ(4) 'Median 2
-        NewRow.Item("Average") = Middel '3
-        NewRow.Item("Min") = PerQ(2) 'Min 4
-        NewRow.Item("Max") = PerQ(3) 'Max '5
+        NewRow.Item("Percentile") = PerQ(0) & " < X < " & PerQ(1)
+        NewRow.Item("Median") = PerQ(4)
+        NewRow.Item("Average") = Middel
+        NewRow.Item("Min") = PerQ(2)
+        NewRow.Item("Max") = PerQ(3)
         Select Case Mainmenu.PerMeth_CBX.SelectedItem
             Case "Interpolated C=0 - Excel after 2013"
                 NewRow.Item("Percentile Analysis") = "Inter. C=0 - " & Mainmenu.LavFrac_Nr.Value & "-" & Mainmenu.HojFrac_Nr.Value & "% - " & My.Settings.TidsInterval & " months"
@@ -165,6 +166,7 @@
         End Select
         NewRow.Item("2SD") = Middel - 2 * SD & " < X < " & Middel + 2 * SD
 
+        '**********************Copy data to output to be used for drawing charts*****************************
         Dim Output() As Integer = {CInt(PerQ(0)), CInt(PerQ(1)), Middel, SD, CInt(PerQ(3))}
 
         Return Output
@@ -308,70 +310,70 @@
         Dim i As Integer = 0
         Dim dview As New DataView(dt)
 
-        'Try
-        Mainmenu.RefChart.Series("Lav").Points.Clear()
-        Mainmenu.RefChart.Series("Ref").Points.Clear()
-        Mainmenu.RefChart.Series("Hoj").Points.Clear()
+        Try
+            Mainmenu.RefChart.Series("Lav").Points.Clear()
+            Mainmenu.RefChart.Series("Ref").Points.Clear()
+            Mainmenu.RefChart.Series("Hoj").Points.Clear()
 
-        Mainmenu.Normal.Series("Lav").Points.Clear()
-        Mainmenu.Normal.Series("Normal").Points.Clear()
-        Mainmenu.Normal.Series("Hoj").Points.Clear()
+            Mainmenu.Normal.Series("Lav").Points.Clear()
+            Mainmenu.Normal.Series("Normal").Points.Clear()
+            Mainmenu.Normal.Series("Hoj").Points.Clear()
 
-        '*********************************Tegn fractil plot***********************
+            '*********************************Draw percentile plot***********************
 
-        Mainmenu.RefChart.ChartAreas("RefChart").AxisX.Interval = xint(max) '10 'middel / 10 '10
-        Mainmenu.RefChart.ChartAreas("RefChart").AxisX.Minimum = 0
-        Mainmenu.RefChart.ChartAreas("RefChart").AxisX.Title = "Concentration"
-        Mainmenu.RefChart.ChartAreas("RefChart").AxisY.Title = "# Samples"
+            Mainmenu.RefChart.ChartAreas("RefChart").AxisX.Interval = xint(max)
+            Mainmenu.RefChart.ChartAreas("RefChart").AxisX.Minimum = 0
+            Mainmenu.RefChart.ChartAreas("RefChart").AxisX.Title = "Concentration"
+            Mainmenu.RefChart.ChartAreas("RefChart").AxisY.Title = "# Samples"
 
-        '*************************Normal distribution****************************************
-        Dim yakse As Double
-        Dim xakse As Double
-        Dim x As Double
+            '*************************Normal distribution****************************************
+            Dim yakse As Double
+            Dim xakse As Double
+            Dim x As Double
 
-        Mainmenu.Normal.ChartAreas(0).AxisX.Interval = 1
-        Mainmenu.Normal.ChartAreas(0).AxisX.Minimum = -4
-        Mainmenu.Normal.ChartAreas(0).AxisX.Maximum = 4
-        Mainmenu.Normal.ChartAreas("Normal").AxisY.Interval = 0.005
-        Mainmenu.Normal.ChartAreas(0).AxisY.Minimum = 0
-        Mainmenu.Normal.ChartAreas(0).AxisY.Maximum = Math.Round(Math.Exp(-(1 / 2) * ((middel - middel) / SD) ^ 2) / (SD * Math.Sqrt(2 * Math.PI)), 4)
-        Mainmenu.Normal.ChartAreas("Normal").AxisX.Title = "Standard deviation"
-        Mainmenu.Normal.ChartAreas("Normal").AxisY.Title = "p(x)"
-        Mainmenu.Progress_TXT.Text = "Filling Charts"
-        Mainmenu.Progress_PB.Value = 0
+            Mainmenu.Normal.ChartAreas(0).AxisX.Interval = 1
+            Mainmenu.Normal.ChartAreas(0).AxisX.Minimum = -4
+            Mainmenu.Normal.ChartAreas(0).AxisX.Maximum = 4
+            Mainmenu.Normal.ChartAreas("Normal").AxisY.Interval = 0.005
+            Mainmenu.Normal.ChartAreas(0).AxisY.Minimum = 0
+            Mainmenu.Normal.ChartAreas(0).AxisY.Maximum = Math.Round(Math.Exp(-(1 / 2) * ((middel - middel) / SD) ^ 2) / (SD * Math.Sqrt(2 * Math.PI)), 4)
+            Mainmenu.Normal.ChartAreas("Normal").AxisX.Title = "Standard deviation"
+            Mainmenu.Normal.ChartAreas("Normal").AxisY.Title = "p(x)"
+            Mainmenu.Progress_TXT.Text = "Filling Charts"
+            Mainmenu.Progress_PB.Value = 0
 
-        For r As Integer = 0 To dt.Rows.Count - 1
-            '*******************************Fraktil plot*******************************
-            If dt.Rows.Item(r)("_Result_") <= Output(0) Then
-                Mainmenu.RefChart.Series("Lav").Points.AddXY(dt.Rows(r)("_Result_"), r + 1)
-            ElseIf dt.Rows.Item(r)("_Result_") <= Output(1) Then
-                Mainmenu.RefChart.Series("Ref").Points.AddXY(dt.Rows(r)("_Result_"), r + 1)
-            ElseIf dt.Rows.Item(r)("_Result_") >= Output(1) Then
-                Mainmenu.RefChart.Series("Hoj").Points.AddXY(dt.Rows(r)("_Result_"), r + 1)
-            End If
+            For r As Integer = 0 To dt.Rows.Count - 1
+                '*******************************percentile plot*******************************
+                If dt.Rows.Item(r)("_Result_") <= Output(0) Then
+                    Mainmenu.RefChart.Series("Lav").Points.AddXY(dt.Rows(r)("_Result_"), r + 1)
+                ElseIf dt.Rows.Item(r)("_Result_") <= Output(1) Then
+                    Mainmenu.RefChart.Series("Ref").Points.AddXY(dt.Rows(r)("_Result_"), r + 1)
+                ElseIf dt.Rows.Item(r)("_Result_") >= Output(1) Then
+                    Mainmenu.RefChart.Series("Hoj").Points.AddXY(dt.Rows(r)("_Result_"), r + 1)
+                End If
 
-            '******************************Normal plot**********************************
-            x = dt.Rows(r)("_Result_")
-            yakse = Math.Round(Math.Exp(-(1 / 2) * ((x - middel) / SD) ^ 2) / (SD * Math.Sqrt(2 * Math.PI)), 5)
-            xakse = Math.Round(((dt.Rows(r)("_Result_") - middel) / SD), 5)
+                '******************************Normal plot**********************************
+                x = dt.Rows(r)("_Result_")
+                yakse = Math.Round(Math.Exp(-(1 / 2) * ((x - middel) / SD) ^ 2) / (SD * Math.Sqrt(2 * Math.PI)), 5)
+                xakse = Math.Round(((dt.Rows(r)("_Result_") - middel) / SD), 5)
 
-            If xakse <= -2 Then
-                Mainmenu.Normal.Series("Lav").Points.AddXY(xakse, yakse)
-            ElseIf xakse >= -2 And xakse <= 2 Then
-                Mainmenu.Normal.Series("Normal").Points.AddXY(xakse, yakse)
-            ElseIf xakse >= 2 Then
-                Mainmenu.Normal.Series("Hoj").Points.AddXY(xakse, yakse)
-            End If
+                If xakse <= -2 Then
+                    Mainmenu.Normal.Series("Lav").Points.AddXY(xakse, yakse)
+                ElseIf xakse >= -2 And xakse <= 2 Then
+                    Mainmenu.Normal.Series("Normal").Points.AddXY(xakse, yakse)
+                ElseIf xakse >= 2 Then
+                    Mainmenu.Normal.Series("Hoj").Points.AddXY(xakse, yakse)
+                End If
 
-            '****************************************************************************
-            Mainmenu.Progress_PB.PerformStep()
-        Next
+                '****************************************************************************
+                Mainmenu.Progress_PB.PerformStep()
+            Next
 
 
-        'Catch ex As Exception
-        'LogFejl(ex.ToString)
-        'MsgBox("Error drawing charts")
-        'End Try
+        Catch ex As Exception
+            LogFejl(ex.ToString)
+            MsgBox("Error drawing charts")
+        End Try
 
     End Sub
     Private Function xint(max As Integer) As Integer
