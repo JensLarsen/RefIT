@@ -15,7 +15,7 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <PublishUrl>F:\</PublishUrl>
+    <PublishUrl>E:\05 RefIT\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
     <UpdateEnabled>false</UpdateEnabled>
@@ -25,7 +25,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>12</ApplicationRevision>
+    <ApplicationRevision>17</ApplicationRevision>
     <ApplicationVersion>0.9.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -125,7 +125,14 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AboutBox1.Designer.vb">
+      <DependentUpon>AboutBox1.vb</DependentUpon>
+    </Compile>
+    <Compile Include="AboutBox1.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Analyse.vb" />
+    <Compile Include="ApplicationEvents.vb" />
     <Compile Include="CleanAndCheck.vb" />
     <Compile Include="connection.vb" />
     <Compile Include="CPRcalc.vb" />
@@ -154,6 +161,22 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="NonCPRcalc.vb" />
+    <Compile Include="PrintChart.Designer.vb">
+      <DependentUpon>PrintChart.vb</DependentUpon>
+    </Compile>
+    <Compile Include="PrintChart.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RefITSplash.Designer.vb">
+      <DependentUpon>RefITSplash.vb</DependentUpon>
+    </Compile>
+    <Compile Include="RefITSplash.vb" />
+    <Compile Include="RefIT_Splash.Designer.vb">
+      <DependentUpon>RefIT_Splash.vb</DependentUpon>
+    </Compile>
+    <Compile Include="RefIT_Splash.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SetupMain.Designer.vb">
       <DependentUpon>SetupMain.vb</DependentUpon>
     </Compile>
@@ -168,6 +191,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="AboutBox1.resx">
+      <DependentUpon>AboutBox1.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Mainmenu.resx">
       <DependentUpon>Mainmenu.vb</DependentUpon>
     </EmbeddedResource>
@@ -176,6 +202,15 @@
       <LastGenOutput>Resources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>My.Resources</CustomToolNamespace>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrintChart.resx">
+      <DependentUpon>PrintChart.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RefITSplash.resx">
+      <DependentUpon>RefITSplash.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RefIT_Splash.resx">
+      <DependentUpon>RefIT_Splash.vb</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SetupMain.resx">
       <DependentUpon>SetupMain.vb</DependentUpon>
