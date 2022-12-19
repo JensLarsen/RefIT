@@ -6,20 +6,25 @@
         dt.Columns("_Analysis_").SetOrdinal(2)
         dt.Columns("_Gender_").SetOrdinal(3)
         dt.Columns("_Age_").SetOrdinal(4)
-        dt.Columns("_Analysis Date_").SetOrdinal(5)
+        dt.Columns("_Analysis_Date_").SetOrdinal(5)
         dt.Columns("_Result_").SetOrdinal(6)
         dt.Columns("_Comment_").SetOrdinal(7)
     End Sub
 
     Public Function Rens(dt As DataTable)
+        '***************************************************************************
+        '**                        Cleans the dataset                             **
+        '***************************************************************************
+
         Dim UdenFor As Integer
         Dim Iku As Integer
         Dim Inkluderet As Integer
 
+
         dt.Columns.Add("_Include_", GetType(Boolean))
         dt.Columns.Add("_Analysis_", GetType(String))
-        dt.Columns.Add("_Analysis Date_", GetType(Date))
-        dt.Columns.Add("_Result_", GetType(Integer))
+        dt.Columns.Add("_Analysis_Date_", GetType(Date))
+        dt.Columns.Add("_Result_", GetType(Double))
         dt.Columns.Add("_Comment_", GetType(String))
 
         Try
@@ -28,20 +33,24 @@
             Mainmenu.Progress_PB.Value = 0
 
             For r As Integer = dt.Rows.Count - 1 To 0 Step -1
-                If Not IsNumeric(dt.Rows.Item(r)(My.Settings.Resultat)) Then
-                    Select Case dt.Rows.Item(r)(My.Settings.Resultat).ToString.First
-                        Case ">", "<"
-                            UdenFor = UdenFor + 1
-                            dt.Rows(r).Delete()
-                        Case Else
-                            Iku = Iku + 1
-                            dt.Rows(r).Delete()
-                    End Select
+
+                If Not IsNumeric(dt.Rows.Item(r)(My.Settings.Resultat).ToString) Then
+                    If dt.Rows.Item(r)(My.Settings.Resultat).ToString <> "" Then
+                        Select Case dt.Rows.Item(r)(My.Settings.Resultat).ToString.First
+                            Case ">", "<"
+                                UdenFor = UdenFor + 1
+                            Case Else
+                                Iku = Iku + 1
+                        End Select
+                    Else
+                        Iku = Iku + 1
+                    End If
+                    dt.Rows(r).Delete()
                 Else
                     If My.Settings.IncludeZero = False And CInt(dt.Rows(r).Item(My.Settings.Resultat)) = 0 Then
                         dt.Rows(r).Delete()
                     Else
-                        dt.Rows(r).Item("_Result_") = CInt(dt.Rows(r).Item(My.Settings.Resultat))
+                        dt.Rows(r).Item("_Result_") = CDbl(dt.Rows(r).Item(My.Settings.Resultat))
                         dt.Rows(r).Item("_Analysis_") = dt.Rows(r).Item(My.Settings.Kvantitet)
                     End If
                     Inkluderet = Inkluderet + 1
@@ -49,6 +58,7 @@
                 Mainmenu.Progress_PB.PerformStep()
                 Application.DoEvents()
             Next
+
             dt.Columns.Remove(My.Settings.Resultat)
             dt.Columns.Remove(My.Settings.Kvantitet)
 
@@ -75,25 +85,25 @@
 
         Catch ex As Exception
             LogFejl(ex.ToString)
-            MsgBox("Error cleaning data")
+            MsgBox("Error cleaning data!")
         End Try
 
         Return dt
     End Function
     Public Function Datokontrol(dt As DataTable)
-
+        '***************************************************************************
+        '**                    Check dates and deletes row if error               **
+        '***************************************************************************
         Try
             Mainmenu.Progress_TXT.Text = "Checking Analysis Dates"
             Mainmenu.Progress_PB.Maximum = dt.Rows.Count
             Mainmenu.Progress_PB.Value = 0
 
             For r As Integer = dt.Rows.Count - 1 To 0 Step -1
-                If Not IsDBNull(dt.Rows(r)(My.Settings.ProveDato)) = True Then
-                    If IsDate(dt.Rows(r)(My.Settings.ProveDato)) Then
-                        dt.Rows(r)("_Analysis Date_") = dt.Rows(r)(My.Settings.ProveDato)
-                    Else
-                        dt.Rows(r).Delete()
-                    End If
+                If IsDate(dt.Rows(r)(My.Settings.ProveDato.ToString)) Then
+                    dt.Rows(r)("_Analysis_Date_") = dt.Rows(r)(My.Settings.ProveDato)
+                Else
+                    dt.Rows(r).Delete()
                 End If
                 Mainmenu.Progress_PB.PerformStep()
                 Application.DoEvents()

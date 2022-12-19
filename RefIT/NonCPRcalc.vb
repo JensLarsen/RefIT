@@ -13,14 +13,18 @@
 
     Private Function CheckSex(dt As DataTable)
         For Each dr As DataRow In dt.Rows
-            Select Case dr.Item(My.Settings.Kon)
-                Case "Kvinde", "kvinde", "K", "k", "Female", "female", "F", "f"
-                    dr.Item("_Gender_") = "F"
-                Case "Mand", "mand", "M", "m", "Male", "male"
-                    dr.Item("_Gender_") = "M"
-                Case Else
-                    dr.Item("_Gender_") = "N"
-            End Select
+            If My.Settings.Kon <> "None" Then
+                Select Case dr.Item(My.Settings.Kon).ToString
+                    Case "Kvinde", "kvinde", "K", "k", "Female", "female", "F", "f"
+                        dr.Item("_Gender_") = "F"
+                    Case "Mand", "mand", "M", "m", "Male", "male"
+                        dr.Item("_Gender_") = "M"
+                    Case Else
+                        dr.Item("_Gender_") = "N"
+                End Select
+            Else
+                dr.Item("_Gender_") = "N"
+            End If
         Next
         Return dt
 
@@ -30,18 +34,18 @@
         Dim faar As DateTime = DateTime.MinValue
         Dim Alder As Integer
 
-        If My.Settings.Alder <> "Non" Then
+        If My.Settings.Alder <> "None" Then
             For Each dr As DataRow In dt.Rows
-                If IsNumeric(dr.Item(My.Settings.Alder)) Then
-                    dr.Item("_Age_") = dr.Item(My.Settings.Alder)
+                If IsNumeric(dr.Item(My.Settings.Alder).ToString) Then
+                    dr.Item("_Age_") = CInt(dr.Item(My.Settings.Alder))
                 Else
                     dr.Item("_Age_") = 111
                 End If
             Next
-        ElseIf My.Settings.Birthday <> "Non" And My.Settings.ProveDato <> "Non" Then
+        ElseIf My.Settings.Birthday <> "None" And My.Settings.ProveDato <> "None" Then
             For Each dr As DataRow In dt.Rows
-                If IsDate(dr.Item(My.Settings.Birthday)) And IsDate(My.Settings.ProveDato) Then
-                    Alder = DateDiff(DateInterval.Year, faar, dr.Item("_Analysis Date_"))
+                If IsDate(dr.Item(My.Settings.Birthday).ToString) And IsDate(My.Settings.ProveDato).ToString Then
+                    Alder = DateDiff(DateInterval.Year, faar, dr.Item("_Analysis_Date_"))
                     If Alder < 0 Or Alder > 130 Then
                         Alder = 2000
                     End If
@@ -51,8 +55,9 @@
                 End If
             Next
         Else
+            MsgBox("No age column set - all patients are set as 50 years old!")
             For Each dr As DataRow In dt.Rows
-                dr.Item("_Age_") = 111
+                dr.Item("_Age_") = 50
             Next
         End If
 
