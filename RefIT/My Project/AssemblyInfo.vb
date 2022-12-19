@@ -1,5 +1,4 @@
-﻿Imports System
-Imports System.Reflection
+﻿Imports System.Reflection
 Imports System.Runtime.InteropServices
 
 ' General Information about an assembly is controlled through the following
@@ -8,11 +7,11 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("RefIT")>
-<Assembly: AssemblyDescription("")>
-<Assembly: AssemblyCompany("")>
+<Assembly: AssemblyTitle("(c) 2022 - Borggaard Automated Science")>
+<Assembly: AssemblyDescription("RefIT - Reference Ranges for Therapeutic Drug Monitoring")>
+<Assembly: AssemblyCompany("Borggaard Automated Science")>
 <Assembly: AssemblyProduct("RefIT")>
-<Assembly: AssemblyCopyright("Copyright ©  2021")>
+<Assembly: AssemblyCopyright("Published under GPL")>
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>

@@ -90,6 +90,7 @@ Partial Class VaelgKolonneNavn
         Me.Name = "VaelgKolonneNavn"
         Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
         Me.Text = "Data Columns Selection"
+        Me.TopMost = True
         Me.ResumeLayout(False)
         Me.PerformLayout()
 

@@ -1,7 +1,7 @@
 ﻿Option Explicit On
 
 '    RefIT - Reference Ranges for Therapeutic Drug Monitoring
-'    Copyright(C) 2022  Jens Borggaard Larsen - jen7lar@gmail.com
+'    Copyright(C) 2022 v. 1.0 Jens Borggaard Larsen - jen7lar@gmail.com
 '
 '    This program Is free software: you can redistribute it And/Or modify
 '    it under the terms Of the GNU General Public License As published by
@@ -21,19 +21,42 @@ Imports System.Drawing.Printing
 
 Public Class Mainmenu
 
-    Public Shared Check As Boolean
-    Public CBXForm As String
+    Public Shared Check As Boolean 'dummy for aborting
+    Public CBXForm As String 'used to get value from various selection boxes
     Public AnalyseNr As Integer = 0
-    Public Shared Raw_DS As New DataSet
-    Public Shared OriginalDT As New DataTable
+    Public Shared Raw_DS As New DataSet 'dataset containing all rawdata
+    Public Shared OriginalDT As New DataTable 'table all data are loaded into
     Public Shared CleanDT As New DataTable
-    Public Shared CurrentTable As String
-    Public Shared UpdateChart As Boolean
-    Public Shared UpdateDGV As Boolean
-    Public Shared Analyse_DS As New DataSet
+    Public Shared MinMaxDate As New DataTable 'Datatable containing dates to analyze from and to for each drug - Filled during import check of dates and
+    Public Shared CurrentTable As String 'currently selected datatable that is viewed
+    Public Shared UpdateChart As Boolean 'used with batch calculation, to prevent charting drawing after eache
+    Public Shared UpdateDGV As Boolean   'used with batch calculation, to prevent datagridview for being updated after eache
+    Public Shared Analyse_DS As New DataSet 'contains calculated datatables
+
+    Private Sub Mainmenu_Load(sender As Object, e As EventArgs) Handles MyBase.Load
+
+        Me.PerMeth_CBX.SelectedIndex = 2
+        Me.View_CBX.SelectedIndex = 0
+
+        SetAnalyseTable()
+
+        '***************************************************************************
+        '**            Generates the Analysis Date To From Table                  **
+        '***************************************************************************
+        MinMaxDate.Columns.Add("_Analysis_")
+        MinMaxDate.Columns("_Analysis_").ColumnName = ("Analysis")
+        MinMaxDate.Columns.Add("_MinDate_")
+        MinMaxDate.Columns("_MinDate_").ColumnName = ("From Date")
+        MinMaxDate.Columns.Add("_MaxDate_")
+        MinMaxDate.Columns("_MaxDate_").ColumnName = ("To Date")
+
+    End Sub
+
 
     Private Sub SetAnalyseTable()
-
+        '***************************************************************************
+        '**            Generates the AnalysisDT table with sample statistics      **
+        '***************************************************************************
         Dim AnalyseDT As New DataTable
 
         AnalyseDT.TableName = "AnalyseDT"
@@ -95,17 +118,29 @@ Public Class Mainmenu
         Analyse_DS.Tables.Add(AnalyseDT)
 
         Analyse_DGV.DataSource = AnalyseDT
+
+        For Each c As DataGridViewColumn In Analyse_DGV.Columns
+            c.SortMode = DataGridViewColumnSortMode.NotSortable
+        Next
+
     End Sub
 
     Private Sub ImportToolStripMenuItem1_Click(sender As Object, e As EventArgs) Handles ImportToolStripMenuItem1.Click
+        '***********************************************************************************
+        '**Imports and perform initial calculations. This is the main code branching out  **
+        '***********************************************************************************
+
+        '***initially clears everything, if a previous file have been loaded****************
+
         DataGridView1.DataSource = Nothing
         Analyse_DGV.DataSource = Nothing
+
         Try
             Me.InfoChart.Series("Status").Points.Clear()
-            Me.Udenmaal_LBL.Text = "0"
-            Me.Udentid_LBL.Text = "0"
-            Me.Ikkeafs_LBL.Text = "0"
-            Me.TotalP_LBL.Text = "0"
+            Me.Udenmaal_LBL.Text = "-"
+            Me.Udentid_LBL.Text = "-"
+            Me.Ikkeafs_LBL.Text = "-"
+            Me.TotalP_LBL.Text = "-"
 
             Raw_DS.Tables.Clear()
             Analyse_DS.Tables.Clear()
@@ -114,43 +149,68 @@ Public Class Mainmenu
                 OriginalDT.Columns.Clear()
                 Raw_DS.Tables.Add(OriginalDT)
             End If
-
-
             Me.Kvnt_CBX.Items.Clear()
+
+            reset()
+
             Progress_TXT.Visible = True
             Progress_TXT.Text = "Please be patient......."
-            reset()
+
         Catch ex As Exception
             LogFejl(ex.ToString)
             MsgBox("Error while importing file!" & vbNewLine & "- Please check that the file is not open in Excel")
             Progress_TXT.Text = "Error while importing file."
         End Try
-        'OpenFileDialog1.InitialDirectory = "c: \"
 
+        '*******************************Opens filedialogue to load file*********************************************
         If OpenFileDialog1.ShowDialog() = DialogResult.OK Then
             Dim filePath As String = OpenFileDialog1.FileName
-            OriginalDT = Import(filePath)
-            If IsNothing(OriginalDT) Then Exit Sub
+            Dim fi As New IO.FileInfo(filePath)
+            Dim extn As String = fi.Extension
+            Select Case extn
+                Case ".xlsx", ".xlsm", ".xltx", ".xltm"
+                Case Else
+                    MsgBox("Wrong file type!" & vbNewLine & "Please convert it to .xlsx, .xlsm, .xltx, or xltm and try again.")
+                    Progress_TXT.Visible = False
+                    Progress_PB.Visible = False
+                    Progress_TXT.Text = ""
+                    Exit Sub
+            End Select
+
+            Me.UseWaitCursor = True
+            Application.DoEvents()
+
+            OriginalDT = Import(filePath) ' calls function for reading file
+
+
+            If IsNothing(OriginalDT) Then Exit Sub 'if nothing is returned then exit sub
+
             Try
-
                 Progress_PB.Style = ProgressBarStyle.Continuous
-
 
                 If Check = False Then
                     Progress_TXT.Text = "Loading aborted"
                     Progress_PB.Visible = False
+                    Me.UseWaitCursor = False
                     Exit Sub 'Exit if error during import
                 End If
 
-                CleanDT = Rens(OriginalDT)
-                CleanDT = Datokontrol(CleanDT)
+                CleanDT = Rens(OriginalDT) 'cleans the dataset from unwanted samples
 
-                If CheckCPR(CleanDT) = True Then
-                    CleanDT = CalculateID(CleanDT)
-                Else
-                    CleanDT = NonCPR(CleanDT)
+                CleanDT = Datokontrol(CleanDT) 'checks the dates and deletes row with errors
+                If CleanDT.Rows.Count = 0 Then 'if dates could not be found in the table abort
+                    Me.UseWaitCursor = False
+                    MsgBox("The selected field for date has an incorrect format." & vbNewLine & "Please correct this in excell, and load file again!")
+                    Exit Sub
                 End If
 
+                If CheckCPR(CleanDT) = True Then 'check if sample id is a danish social security number
+                    CleanDT = CalculateID(CleanDT) 'if so calculate birthday and anonymize
+                Else
+                    CleanDT = NonCPR(CleanDT) 'else anonymize
+                End If
+
+                '********************Removes all columns that are not added containing "_" eg "_Age_"
                 Dim colname As String
                 For i As Integer = CleanDT.Columns.Count - 1 To 0 Step -1
                     colname = CleanDT.Columns(i).ColumnName
@@ -159,9 +219,14 @@ Public Class Mainmenu
                     End If
                 Next
 
-                KolonneRaekke(CleanDT)
-                FyldKvnTilCBX(CleanDT)
-
+                If CleanDT.Rows.Count > 0 Then
+                    KolonneRaekke(CleanDT)
+                    FyldKvnTilCBX(CleanDT)
+                Else
+                    Me.UseWaitCursor = False
+                    MsgBox("The selected field for date has an incorrect format." & vbNewLine & "Please correct this in excell, and load file again!")
+                    Exit Sub
+                End If
 
                 Me.Kvnt_CBX.SelectedIndex = 0
 
@@ -170,18 +235,40 @@ Public Class Mainmenu
 
             Catch ex As Exception
                 LogFejl(ex.ToString)
-                MsgBox("Error while importing file!" & vbNewLine & "- Please check that the file is not open in Excel")
+                Me.UseWaitCursor = False
+                MsgBox("Error while importing file!")
             End Try
-
+            Me.UseWaitCursor = False
         End If
     End Sub
 
     Private Sub FyldKvnTilCBX(dt As DataTable)
         Dim KvntNames = From v In dt.AsEnumerable Select v.Field(Of String)("_Analysis_") Distinct
+        Dim dview As New DataView(dt)
+        Dim MinDate As Date
+        Dim MaxDate As Date
+        Dim AddRow As DataRow
+
+        MinMaxDate.Rows.Clear()
+
         If Not IsNothing(KvntNames) Then
             For Each t As String In KvntNames
                 Me.Kvnt_CBX.Items.Add(t)
+
+                dview.RowFilter = "_Analysis_ = '" & t & "'"
+                dview.Sort = "_Analysis_Date_ DESC"
+                MaxDate = dview.Item(0)("_Analysis_Date_")
+                dview.Sort = "_Analysis_Date_ ASC"
+                MinDate = dview.Item(0)("_Analysis_Date_")
+
+                AddRow = MinMaxDate.NewRow()
+                AddRow.Item("Analysis") = t
+                AddRow.Item("From Date") = MinDate
+                AddRow.Item("To Date") = MaxDate
+
+                MinMaxDate.Rows.Add(AddRow)
             Next
+            Me.Kvnt_CBX.Sorted = True
         End If
     End Sub
 
@@ -195,10 +282,19 @@ Public Class Mainmenu
         Try
 
             Dim selectrows() As DataRow = CleanDT.Select("_Analysis_ = '" & t & "'")
-            If Not IsNothing(selectrows) Then
+                    If Not IsNothing(selectrows) Then
 
                 NyTabel = selectrows.CopyToDataTable()
-                NyTabel = JansAlgo(NyTabel)
+
+                Select Case Me.Model_CBX.SelectedItem
+                    Case "TDM model"
+                        NyTabel = TDMmodel(NyTabel)
+                    Case "First result from patient", "Last result from patient"
+                        NyTabel = FirstLastmodel(NyTabel)
+                    Case "All data from patient"
+                        NyTabel = Allmodel(NyTabel)
+                End Select
+
                 NyTabel.TableName = t
 
             End If
@@ -231,6 +327,8 @@ Public Class Mainmenu
             InfoChart.Series("Status").Points(2).Color = Color.ForestGreen
             InfoChart.Series("Status").Points(3).Color = Color.IndianRed
 
+            InfoChart.ChartAreas("CleanC").RecalculateAxesScale()
+
             Return (NyTabel)
 
         Catch ex As Exception
@@ -239,11 +337,11 @@ Public Class Mainmenu
         End Try
     End Function
 
-    Private Function JansAlgo(dt As DataTable)
+    Private Function TDMmodel(dt As DataTable)
 
         Try
 
-            dt.DefaultView.Sort = "_ID_ ASC, _Analysis Date_ ASC"
+            dt.DefaultView.Sort = "_ID_ ASC, _Analysis_Date_ ASC"
             dt = dt.DefaultView.ToTable
 
             Dim IDnr = From v In dt.AsEnumerable Select v.Field(Of String)("_ID_") Distinct
@@ -268,10 +366,10 @@ Public Class Mainmenu
                             If rCount = 0 Then
                                 r.Item("_Include_") = True
                                 PreRow = r
-                                Dato1 = r.Item("_Analysis Date_")
+                                Dato1 = r.Item("_Analysis_Date_")
                                 rCount = rCount + 1
                             Else
-                                Dato2 = r.Item("_Analysis Date_")
+                                Dato2 = r.Item("_Analysis_Date_")
                                 If DateDiff(DateInterval.Month, Dato1, Dato2) < Me.Tid_Nr.Value Then
                                     PreRow.Item("_Include_") = False
                                     r.Item("_Include_") = True
@@ -284,7 +382,7 @@ Public Class Mainmenu
                                     PreRow.Item("_Include_") = True
                                     r.Item("_Include_") = True
                                 End If
-                                Dato1 = r.Item("_Analysis Date_")
+                                Dato1 = r.Item("_Analysis_Date_")
                                 PreRow = r
                                 rCount = rCount + 1
                             End If
@@ -303,36 +401,152 @@ Public Class Mainmenu
 
         Catch ex As Exception
             LogFejl(ex.ToString)
-        MsgBox("Error performing selection rules")
+            MsgBox("Error performing selection rules")
         End Try
 
         Return dt
     End Function
 
+    Private Function FirstLastmodel(dt As DataTable)
+
+        Try
+
+            Dim IDnr = From v In dt.AsEnumerable Select v.Field(Of String)("_ID_") Distinct
+            Dim rCount As Integer = 0
+            Dim comment As String
+            Dim ExNr As Integer = 0
+            Dim InNr As Integer = 0
+
+            If Me.Model_CBX.SelectedItem = "First result from patient" Then
+                dt.DefaultView.Sort = "_ID_ ASC, _Analysis_Date_ ASC"
+                comment = "First measurement from patient"
+            Else
+                dt.DefaultView.Sort = "_ID_ ASC, _Analysis_Date_ DESC"
+                comment = "Last measurement from patient"
+            End If
+
+            dt = dt.DefaultView.ToTable
+
+            Progress_TXT.Text = "Applying selection rules"
+            Progress_PB.Maximum = dt.Rows.Count
+
+            If Not IsNothing(IDnr) Then
+                For Each t As String In IDnr
+                    Dim selectrows = From v In dt.AsEnumerable Where v.Item("_ID_") = t Select v
+                    If Not IsNothing(selectrows) Then
+
+                        For Each r As DataRow In selectrows
+
+                            InNr = InNr + 1
+                            If rCount = 0 Then
+                                r.Item("_Include_") = True
+                                r.Item("_Comment_") = comment
+                                rCount = rCount + 1
+                            Else
+                                r.Item("_Include_") = False
+                                ExNr = ExNr + 1
+                                InNr = InNr - 1
+                            End If
+                            Progress_PB.PerformStep()
+                        Next
+                    End If
+                    Progress_PB.PerformStep()
+                    Application.DoEvents()
+                    selectrows = Nothing
+                    rCount = 0
+                Next
+            End If
+
+            Me.Udentid_LBL.Text = ExNr
+            Me.TotalP_LBL.Text = InNr
+
+        Catch ex As Exception
+            LogFejl(ex.ToString)
+            MsgBox("Error performing selection rules")
+        End Try
+
+        Return dt
+    End Function
+    Private Function Allmodel(dt As DataTable)
+
+        Try
+
+            dt.DefaultView.Sort = "_ID_ ASC, _Analysis_Date_ ASC"
+            dt = dt.DefaultView.ToTable
+
+            Dim IDnr = From v In dt.AsEnumerable Select v.Field(Of String)("_ID_") Distinct
+
+            Dim ExNr As Integer = 0
+            Dim InNr As Integer = 0
+
+            Progress_TXT.Text = "Applying selection rules"
+            Progress_PB.Maximum = dt.Rows.Count
+
+            If Not IsNothing(IDnr) Then
+                For Each t As String In IDnr
+                    Dim selectrows = From v In dt.AsEnumerable Where v.Item("_ID_") = t Select v
+                    If Not IsNothing(selectrows) Then
+                        For Each r As DataRow In selectrows
+                            r.Item("_Include_") = True
+                            ExNr = ExNr + 1
+                            InNr = InNr - 1
+                            Progress_PB.PerformStep()
+                        Next
+                    End If
+                    Progress_PB.PerformStep()
+                    Application.DoEvents()
+                    selectrows = Nothing
+                Next
+            End If
+
+            Me.Udentid_LBL.Text = ExNr
+            Me.TotalP_LBL.Text = InNr
+
+        Catch ex As Exception
+            LogFejl(ex.ToString)
+            MsgBox("Error performing selection rules")
+        End Try
+
+        Return dt
+    End Function
     Private Sub BeregnEnkelt()
         Dim dt As DataTable
 
-        Progress_PB.Visible = True
-        Progress_TXT.Visible = True
+        If Me.Kvnt_CBX.Items.Count = 0 Then Exit Sub
 
-        My.Settings.TidsInterval = Me.Tid_Nr.Value
-        dt = Kvantiteter(Me.Kvnt_CBX.SelectedItem)
+        Try
+            Progress_PB.Visible = True
+            Progress_TXT.Visible = True
+            Me.UseWaitCursor = True
+            Application.DoEvents()
 
-        If dt.Rows.Count - 1 > 0 Then
-            DataGridView1.DataSource = dt
-            CurrentTable = dt.TableName
-            Analyze()
-        Else
-            MsgBox("No samples selected based on this setting.")
-        End If
+            My.Settings.TidsInterval = Me.Tid_Nr.Value
+            dt = Kvantiteter(Me.Kvnt_CBX.SelectedItem)
 
-        Progress_PB.Visible = False
-        Progress_TXT.Visible = False
+            If dt.Rows.Count - 1 > 0 Then
+                DataGridView1.DataSource = dt
+                CurrentTable = dt.TableName
+                Analyze()
+                DataGridView1.Columns("_Include_").ReadOnly = False
+            Else
+                MsgBox("No samples selected based on this setting.")
+            End If
 
-        DataGridView1.Columns("_Include_").ReadOnly = False
-
+            Progress_PB.Visible = False
+            Progress_TXT.Visible = False
+            Cursor.Current = Cursors.Default
+        Catch ex As Exception
+            LogFejl(ex.ToString)
+            Me.UseWaitCursor = False
+            MsgBox("Database is empty - please check import file")
+        End Try
+        Me.UseWaitCursor = False
+        Me.TabControl1.SelectedIndex = 1
     End Sub
     Private Sub BatchCalc()
+
+        If Me.Kvnt_CBX.Items.Count = 0 Then Exit Sub
+
         UpdateChart = False
         UpdateDGV = False
 
@@ -341,27 +555,35 @@ Public Class Mainmenu
 
         Progress_PB.Visible = True
         Progress_TXT.Visible = True
+        Me.UseWaitCursor = True
+        Application.DoEvents()
 
         My.Settings.TidsInterval = Me.Tid_Nr.Value
 
         For i As Integer = 0 To Me.Kvnt_CBX.Items.Count - 1
-            Str = Me.Kvnt_CBX.Items.Item(i) 'SelectedIndex = i
-            dt = Kvantiteter(Str)
-            CurrentTable = dt.TableName
-            analyser(dt)
             If i = Me.Kvnt_CBX.Items.Count - 1 Then
-                DataGridView1.DataSource = dt
-                drawchart(dt)
-                Me.Kvnt_CBX.SelectedIndex = i
-                Analyse_DGV.ClearSelection()
+                UpdateChart = True
+                UpdateDGV = True
+            End If
+            If Me.Kvnt_CBX.Items.Item(i).ToString <> "" Then
+                Str = Me.Kvnt_CBX.Items.Item(i)
+                dt = Kvantiteter(Str)
+                CurrentTable = dt.TableName
+                analyser(dt)
+                If i = Me.Kvnt_CBX.Items.Count - 1 Then
+                    DataGridView1.DataSource = dt
+                    drawchart(dt)
+                    Me.Kvnt_CBX.SelectedIndex = i
+                    Analyse_DGV.ClearSelection()
+                End If
             End If
         Next
 
-        UpdateChart = True
-        UpdateDGV = True
-
         Progress_PB.Visible = False
         Progress_TXT.Visible = False
+        Me.UseWaitCursor = False
+        Me.TabControl1.SelectedIndex = 1
+
     End Sub
     Private Sub Analyze()
 
@@ -377,8 +599,10 @@ Public Class Mainmenu
 
         UpdateChart = True
         BeregnEnkelt()
-        Dim dt As DataTable = TryCast(DataGridView1.DataSource, DataTable).Copy()
-        CurrentTable = dt.TableName
+        If DataGridView1.RowCount - 1 > 0 Then
+            Dim dt As DataTable = TryCast(DataGridView1.DataSource, DataTable).Copy()
+            CurrentTable = dt.TableName
+        End If
 
     End Sub
 
@@ -386,9 +610,6 @@ Public Class Mainmenu
         Try
             Dim tekst As String = "Erase all analysed datasets - Proceed? "
             If MsgBox(tekst, vbYesNo) = vbNo Then Exit Sub
-            Analyse_DS.Tables.Clear()
-            Analyse_DGV.DataSource = Nothing
-            Analyse_DGV.Refresh()
             reset()
         Catch ex As Exception
             LogFejl(ex.ToString)
@@ -397,7 +618,43 @@ Public Class Mainmenu
     End Sub
     Private Sub reset()
 
+        Analyse_DS.Tables.Clear()
+        Analyse_DGV.DataSource = Nothing
+        Analyse_DGV.Refresh()
+
+        DataGridView1.DataSource = Nothing
+        DataGridView1.Refresh()
+
+        Me.RefChart.Series("Lav").Points.Clear()
+        Me.RefChart.Series("Ref").Points.Clear()
+        Me.RefChart.Series("Hoj").Points.Clear()
+        Me.RefChart.Titles.Item("Title1").Text = ""
+
+        Me.Normal.Series("Lav").Points.Clear()
+        Me.Normal.Series("Normal").Points.Clear()
+        Me.Normal.Series("Hoj").Points.Clear()
+        Me.Normal.Titles.Item("Title1").Text = ""
+
+        Me.DataPlot.Series("OutsideRange").Points.Clear()
+        Me.DataPlot.Series("Outliers").Points.Clear()
+        Me.DataPlot.Series("WithinRange").Points.Clear()
+        Me.DataPlot.Series("LowP").Points.Clear()
+        Me.DataPlot.Series("HighP").Points.Clear()
+        Me.DataPlot.Series("Median").Points.Clear()
+        Me.DataPlot.Series("LowSD").Points.Clear()
+        Me.DataPlot.Series("HighSD").Points.Clear()
+        Me.DataPlot.Series("Average").Points.Clear()
+        Me.DataPlot.Titles.Item("Title1").Text = ""
+
+        For s As Integer = 0 To Me.InfoChart.Series.Count - 1
+            Me.InfoChart.Series(s).Points.Clear()
+        Next
+
+        Me.InfoChart.Titles(0).Text = "Statistics"
+
+        Me.Model_CBX.SelectedIndex = 0
         Me.Kon_CBX.SelectedIndex = 0
+        Me.View_CBX.SelectedIndex = 0
         Me.Tukey_CHK.Checked = False
         Me.MinNr.Value = 0
         Me.MaxNr.Value = 100
@@ -419,7 +676,6 @@ Public Class Mainmenu
             Exit Sub
         End If
 
-        'dr = Analyse_DGV.SelectedRows
         dt = CType(Analyse_DGV.DataSource, DataTable).Clone()
         ds.Tables.Add(dt)
 
@@ -435,11 +691,7 @@ Public Class Mainmenu
             End If
             dra = Nothing
         Next
-
-        If SaveFileDialog1.ShowDialog() = DialogResult.OK Then
-            Dim filePath As String = SaveFileDialog1.FileName
-            Export(filePath, ds)
-        End If
+        Export(ds)
 
         ds = Nothing
         dt = Nothing
@@ -448,11 +700,8 @@ Public Class Mainmenu
     End Sub
 
     Private Sub ExportAllToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ExportAllToolStripMenuItem.Click
-        'GemExcel()
-        If SaveFileDialog1.ShowDialog() = DialogResult.OK Then
-            Dim filePath As String = SaveFileDialog1.FileName
-            Export(filePath, Analyse_DS)
-        End If
+
+        Export(Analyse_DS)
 
     End Sub
 
@@ -472,7 +721,21 @@ Public Class Mainmenu
             DataGridView1.DataSource = dt
 
             Call drawchart(dt)
+            '********************************************************************************
+            '**                     Fill Data plot                                         **
+            '********************************************************************************
+            Dim dRow As DataRow = Mainmenu.Analyse_DS.Tables("AnalyseDT").NewRow()
+            Dim n As Integer = 0
+
+            For Each ec As DataGridViewCell In Analyse_DGV.Rows(e.RowIndex).Cells
+                dRow.Item(n) = ec.Value
+                n = n + 1
+            Next
+
+            Analyse.drawdataplot(dRow, dt)
+
         End If
+
     End Sub
 
     Private Sub drawchart(dt As DataTable)
@@ -483,9 +746,10 @@ Public Class Mainmenu
 
         Dim NewRow As DataRow = Mainmenu.Analyse_DS.Tables("AnalyseDT").NewRow() ' empty row used as dummy
         Dim Output() As Integer = Analyse.Statistics(dt, NewRow) 'Calculates fractile limits, avg and SD
-        NewRow = Nothing ' row is set to nothing
         Analyse.Charts(dt, Output) ' draws the charts using the datatable 
+        NewRow = Nothing ' row is set to nothing
     End Sub
+
 
     Private mRow As Integer = 1
     Private newpage As Boolean = True
@@ -644,23 +908,223 @@ Public Class Mainmenu
         End If
     End Sub
 
-    Private Sub LavFrac_Nr_ValueChanged(sender As Object, e As EventArgs) Handles LavFrac_Nr.ValueChanged
+    Private Sub LavFrac_Nr_ValueChanged(sender As Object, e As EventArgs)
         If Me.LavFrac_Nr.Value >= Me.HojFrac_Nr.Value Then
             Me.LavFrac_Nr.Value = 10
             Me.HojFrac_Nr.Value = 90
         End If
     End Sub
 
-    Private Sub HojFrac_Nr_ValueChanged(sender As Object, e As EventArgs) Handles HojFrac_Nr.ValueChanged
+    Private Sub HojFrac_Nr_ValueChanged(sender As Object, e As EventArgs)
         If Me.LavFrac_Nr.Value >= Me.HojFrac_Nr.Value Then
             Me.LavFrac_Nr.Value = 10
             Me.HojFrac_Nr.Value = 90
         End If
     End Sub
 
-    Private Sub Mainmenu_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-        Me.PerMeth_CBX.SelectedIndex = 2
-        SetAnalyseTable()
+    Private Sub SaveChartsAsImageToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles SaveChartsAsImageToolStripMenuItem.Click
+
+        Dim savefile As SaveFileDialog = New SaveFileDialog
+        Dim savechart As New System.Windows.Forms.DataVisualization.Charting.Chart
+        Dim mystream As New System.IO.MemoryStream
+        Dim title As String
+        Dim unitofconc As String
+
+        PrintChart.ShowDialog()
+
+        title = InputBox("Please enter title of the chart")
+        If title = "" Then Exit Sub
+
+        If CBXForm = "Percentile chart" Then
+            Me.RefChart.Serializer.Save(mystream)
+            savechart.Serializer.Load(mystream)
+            unitofconc = InputBox("Please enter concentration unit of the analysis")
+            savechart.ChartAreas(0).AxisX.Title = "Concentration / " & unitofconc
+        ElseIf CBXForm = "Normal distribution chart" Then
+            Me.Normal.Serializer.Save(mystream)
+            savechart.Serializer.Load(mystream)
+        ElseIf CBXForm = "Data plot chart" Then
+            Me.DataPlot.Serializer.Save(mystream)
+            savechart.Serializer.Load(mystream)
+            unitofconc = InputBox("Please enter concentration unit of the analysis")
+            savechart.ChartAreas(0).AxisY.Title = "Concentration / " & unitofconc
+            savechart.ChartAreas(0).AxisX.Title = "Date"
+        End If
+
+        savechart.Titles.Item(0).Text = title
+        savechart.Titles.Item(1).Visible = False
+
+        chartstyle(savechart)
+
+        savefile.Filter = "PNG Image (*.png*)|*.png|JPEG Image (*.jpg*)|*.jpg|Bitmap Image (*.bmp*)|*.bmp|TIFF Image (*.tiff*)|*.tiff|emf Image (*.emf*)|*.emf|wmf Image (*.wmf*)|*.wmf"
+        If savefile.ShowDialog = DialogResult.OK Then
+            Dim path As String = savefile.FileName
+            Dim fi As New IO.FileInfo(path)
+            Dim extn As String = fi.Extension
+            Select Case extn
+                Case ".png"
+                    savechart.SaveImage(savefile.FileName, System.Drawing.Imaging.ImageFormat.Png)
+                Case ".jpg"
+                    savechart.SaveImage(savefile.FileName, System.Drawing.Imaging.ImageFormat.Jpeg)
+                Case ".bmp"
+                    savechart.SaveImage(savefile.FileName, System.Drawing.Imaging.ImageFormat.Bmp)
+                Case ".tiff"
+                    savechart.SaveImage(savefile.FileName, System.Drawing.Imaging.ImageFormat.Tiff)
+                Case ".emf"
+                    savechart.SaveImage(savefile.FileName, System.Drawing.Imaging.ImageFormat.Emf)
+                Case ".wmf"
+                    savechart.SaveImage(savefile.FileName, System.Drawing.Imaging.ImageFormat.Wmf)
+            End Select
+        End If
+
+        savechart.Titles.Item(1).Visible = True
     End Sub
 
+    Private Sub chartstyle(ByRef savechart As System.Windows.Forms.DataVisualization.Charting.Chart)
+
+        savechart.Size = New Size(2400, 2400)
+        savechart.BackColor = Color.White
+        savechart.ChartAreas(0).BackColor = Color.White
+
+        savechart.Titles.Item(0).Font = New Font("Arial", 72, FontStyle.Bold)
+        savechart.ChartAreas(0).AxisX.TitleFont = New Font("Arial", 48, FontStyle.Bold)
+        savechart.ChartAreas(0).AxisX.LabelStyle.Font = New Font("Arial", 48, FontStyle.Bold)
+        savechart.ChartAreas(0).AxisY.TitleFont = New Font("Arial", 48, FontStyle.Bold)
+        savechart.ChartAreas(0).AxisY.LabelStyle.Font = New Font("Arial", 48, FontStyle.Bold)
+
+        savechart.ChartAreas(0).AxisX.LineWidth = 5
+        savechart.ChartAreas(0).AxisY.LineWidth = 5
+        savechart.ChartAreas(0).AxisX.LineColor = Color.Black
+        savechart.ChartAreas(0).AxisY.LineColor = Color.Black
+        savechart.ChartAreas(0).AxisX.MajorGrid.LineColor = Color.Black
+        savechart.ChartAreas(0).AxisX.MajorGrid.LineWidth = 3
+        savechart.ChartAreas(0).AxisY.MajorGrid.LineColor = Color.Black
+        savechart.ChartAreas(0).AxisY.MajorGrid.LineWidth = 3
+
+        Select Case CBXForm
+            Case "Percentile chart", "Normal distrubution chart"
+                savechart.Size = New Size(2400, 2400)
+                savechart.Series("Lav").BackGradientStyle = DataVisualization.Charting.GradientStyle.None
+                savechart.Series("Lav").Color = Color.Red
+                If CBXForm = "Percentile chart" Then
+                    savechart.Series("Ref").BackGradientStyle = DataVisualization.Charting.GradientStyle.None
+                    savechart.Series("Ref").Color = Color.Green
+                Else
+                    savechart.Series("Normal").BackGradientStyle = DataVisualization.Charting.GradientStyle.None
+                    savechart.Series("Normal").Color = Color.Green
+                End If
+                savechart.Series("Hoj").BackGradientStyle = DataVisualization.Charting.GradientStyle.None
+                savechart.Series("Hoj").Color = Color.Red
+            Case "Data plot chart"
+                savechart.Size = New Size(4800, 2400)
+
+                savechart.Series("OutsideRange").MarkerSize = 24
+                savechart.Series("Outliers").MarkerSize = 24
+                savechart.Series("WithinRange").MarkerSize = 24
+
+                savechart.Series("LowP").MarkerSize = 36
+                savechart.Series("HighP").MarkerSize = 36
+                savechart.Series("Median").MarkerSize = 36
+                savechart.Series("LowSD").MarkerSize = 36
+                savechart.Series("HighSD").MarkerSize = 36
+                savechart.Series("Average").MarkerSize = 36
+
+                savechart.Legends("Legend1").Font = New Font("Arial", 36, FontStyle.Bold)
+
+                savechart.Series("LowP").BorderWidth = 12
+                savechart.Series("HighP").BorderWidth = 12
+                savechart.Series("Median").BorderWidth = 12
+                savechart.Series("LowSD").BorderWidth = 12
+                savechart.Series("HighSD").BorderWidth = 12
+                savechart.Series("Average").BorderWidth = 12
+
+                savechart.Series("OutsideRange").Color = Color.Red
+                savechart.Series("Outliers").Color = Color.Black
+                savechart.Series("WithinRange").Color = Color.Green
+                savechart.Series("Median").Color = Color.Blue
+                savechart.Series("Average").Color = Color.Blue
+
+        End Select
+    End Sub
+
+    Private Sub AboutRefITToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles AboutRefITToolStripMenuItem.Click
+        About_Box.Show()
+    End Sub
+
+    Private Sub PeriodSet_BTN_Click(sender As Object, e As EventArgs) Handles PeriodSet_BTN.Click
+
+        If MinMaxDate.Rows.Count > 0 Then
+            AnalyzeDates.Show()
+        End If
+    End Sub
+
+    Private Sub Yaxis_BAR_Scroll(sender As Object, e As ScrollEventArgs) Handles Yaxis_BAR.Scroll
+        Try
+            If Me.Yaxis_BAR.Value <= 0 Then
+                Me.Yaxis_BAR.Value = 1
+            ElseIf Me.Yaxis_BAR.Value > Me.Yaxis_BAR.Maximum Then
+                Me.Yaxis_BAR.Value = Me.Yaxis_BAR.Maximum
+            End If
+            Me.DataPlot.ChartAreas(0).AxisY.Maximum = CDbl(Me.Yaxis_BAR.Value)
+            Me.DataPlot.ChartAreas(0).RecalculateAxesScale()
+        Catch ex As Exception
+            MsgBox(Me.Yaxis_BAR.Value & " - " & Me.Yaxis_BAR.Maximum & " - " & Me.DataPlot.ChartAreas(0).AxisY.Maximum)
+        End Try
+
+    End Sub
+
+    Private Sub View_CBX_SelectedIndexChanged(sender As Object, e As EventArgs) Handles View_CBX.SelectedIndexChanged
+        Select Case Me.View_CBX.SelectedItem
+            Case "Percentile"
+                Me.DataPlot.Series("LowSD").Enabled = False
+                Me.DataPlot.Series("HighSD").Enabled = False
+                Me.DataPlot.Series("Average").Enabled = False
+                Me.DataPlot.Series("LowSD").IsVisibleInLegend = False
+                Me.DataPlot.Series("HighSD").IsVisibleInLegend = False
+                Me.DataPlot.Series("Average").IsVisibleInLegend = False
+
+                Me.DataPlot.Series("LowP").Enabled = True
+                Me.DataPlot.Series("HighP").Enabled = True
+                Me.DataPlot.Series("Median").Enabled = True
+                Me.DataPlot.Series("LowP").IsVisibleInLegend = True
+                Me.DataPlot.Series("HighP").IsVisibleInLegend = True
+                Me.DataPlot.Series("Median").IsVisibleInLegend = True
+            Case "Standard Deviation"
+                Me.DataPlot.Series("LowSD").Enabled = True
+                Me.DataPlot.Series("HighSD").Enabled = True
+                Me.DataPlot.Series("Average").Enabled = True
+                Me.DataPlot.Series("LowSD").IsVisibleInLegend = True
+                Me.DataPlot.Series("HighSD").IsVisibleInLegend = True
+                Me.DataPlot.Series("Average").IsVisibleInLegend = True
+
+                Me.DataPlot.Series("LowP").Enabled = False
+                Me.DataPlot.Series("HighP").Enabled = False
+                Me.DataPlot.Series("Median").Enabled = False
+                Me.DataPlot.Series("LowP").IsVisibleInLegend = False
+                Me.DataPlot.Series("HighP").IsVisibleInLegend = False
+                Me.DataPlot.Series("Median").IsVisibleInLegend = False
+        End Select
+
+        Me.DataPlot.ChartAreas("ChartArea1").RecalculateAxesScale()
+    End Sub
+
+    Private Sub Comedic_BTN_Click(sender As Object, e As EventArgs) Handles Comedic_BTN.Click
+        MsgBox("Feature is ready in v.2.0.")
+    End Sub
+
+    Private Sub Excluded_CHK_CheckedChanged(sender As Object, e As EventArgs) Handles Excluded_CHK.CheckedChanged
+        If Me.Excluded_CHK.Checked = True Then
+            Me.DataPlot.Series("OutsideRange").Enabled = True
+        Else
+            Me.DataPlot.Series("OutsideRange").Enabled = False
+        End If
+    End Sub
+
+    Private Sub Outliers_CHK_CheckedChanged(sender As Object, e As EventArgs) Handles Outliers_CHK.CheckedChanged
+        If Me.Outliers_CHK.Checked = True Then
+            Me.DataPlot.Series("Outliers").Enabled = True
+        Else
+            Me.DataPlot.Series("Outliers").Enabled = False
+        End If
+    End Sub
 End Class
