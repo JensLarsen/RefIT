@@ -745,7 +745,7 @@ Public Class Mainmenu
         dt = TryCast(dview.ToTable, DataTable).Copy()
 
         Dim NewRow As DataRow = Mainmenu.Analyse_DS.Tables("AnalyseDT").NewRow() ' empty row used as dummy
-        Dim Output() As Integer = Analyse.Statistics(dt, NewRow) 'Calculates fractile limits, avg and SD
+        Dim Output() As Double = Analyse.Statistics(dt, NewRow) 'Calculates fractile limits, avg and SD
         Analyse.Charts(dt, Output) ' draws the charts using the datatable 
         NewRow = Nothing ' row is set to nothing
     End Sub
