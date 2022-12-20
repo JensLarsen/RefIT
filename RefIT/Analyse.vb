@@ -5,7 +5,7 @@
         '**                    Main analysis function that branches out           **
         '***************************************************************************
         Dim dtdraw As DataTable
-        Dim Output() As Integer
+        Dim Output() As Double
         Dim NewRow As DataRow = Mainmenu.Analyse_DS.Tables("AnalyseDT").NewRow()
         Dim dview As New DataView(dt)
 
@@ -152,12 +152,12 @@
         Dim md As Double = Math.Round(0.5 * dt.Rows.Count, 0) ' Median
         Dim LQ As Double = 0.25 * dt.Rows.Count - 1 'low quartile
         Dim HQ As Double = 0.75 * dt.Rows.Count - 1 'high quartile
-        Dim Middel As Integer 'average of sampleset
-        Dim SD As Integer     'standard deviation
+        Dim Middel As Double 'average of sampleset
+        Dim SD As Double     'standard deviation
         Dim MinDate As Date 'The first date in the sampleset
         Dim MaxDate As Date 'The last day in the sampleset
         Dim PerQ() As Double '1-2 Percentiles, 3-4 Quartiles and 5-6 min max,7 median
-        Dim Output() As Integer 'returning values to draw chart
+        Dim Output() As Double 'returning values to draw chart
 
         Try
 
@@ -188,7 +188,7 @@
             End If
 
             If dt.Rows.Count > 0 Then
-                Middel = Middel / dt.Rows.Count 'calculate average
+                Middel = Math.Round(Middel / dt.Rows.Count, 2) 'calculate average
                 SD = STDafv(dt, Middel) 'calculate standard deviation
             Else
                 Middel = 0
@@ -204,10 +204,10 @@
             NewRow.Item("Min") = PerQ(2)
             NewRow.Item("Max") = PerQ(3)
             NewRow.Item("Percentile Analysis") = MethodName()
-            NewRow.Item("2SD") = Middel - 2 * SD & " - " & Middel + 2 * SD
+            NewRow.Item("2SD") = Math.Round(Middel - 2 * SD, 2) & " - " & Math.Round(Middel + 2 * SD, 2)
 
             '**********************Copy data to output to be used for drawing charts*****************************
-            Output = {CInt(PerQ(0)), CInt(PerQ(1)), Middel, SD, CInt(PerQ(3)), CInt(PerQ(4))}
+            Output = {PerQ(0), PerQ(1), Middel, SD, PerQ(3), PerQ(4)}
 
         Catch ex As Exception
             MsgBox("No results for " & dt.TableName)
@@ -256,11 +256,11 @@
         Dim n(2) As Double
         Dim LF As Double = Mainmenu.LavFrac_Nr.Value / 100
         Dim HF As Double = Mainmenu.HojFrac_Nr.Value / 100
-        Dim LowP As Double 'Loer percentile
+        Dim LowP As Double 'Lower percentile
         Dim HighP As Double 'High percentile
         Dim v1(2) As Double
         Dim v2(2) As Double
-        Dim k(2) As Integer
+        Dim k(2) As Double
         Dim d(2) As Double
 
         Dim min As Double = dt.Rows(0).Item("_Result_")
@@ -331,7 +331,7 @@
             SD = 1
         End Try
 
-        Return SD
+        Return (Math.Round(SD, 2))
 
     End Function
 
@@ -368,8 +368,8 @@
         '**       Removes outliers based on tukeys fences                 **
         '*******************************************************************
         Dim TukeyQ1Q2() As Integer = TukeyFences(dt)
-        Dim Q1 As Integer = TukeyQ1Q2(0)
-        Dim Q2 As Integer = TukeyQ1Q2(1)
+        Dim Q1 As Double = TukeyQ1Q2(0)
+        Dim Q2 As Double = TukeyQ1Q2(1)
         Dim OutliersNr As Integer
 
         Try
@@ -400,15 +400,15 @@
 
     End Function
 
-    Public Sub Charts(dt As DataTable, Output As Integer())
+    Public Sub Charts(dt As DataTable, Output As Double())
         '*******************************************************************
         '**       Draws percentile and normal distribution charts         **
         '*******************************************************************
-        Dim middel As Integer = Output(2)
-        Dim SD As Integer = Output(3)
-        Dim lavfraktil As Integer = Output(0)
-        Dim hojfraktil As Integer = Output(1)
-        Dim max As Integer = Output(4)
+        Dim middel As Double = Output(2)
+        Dim SD As Double = Output(3)
+        Dim lavfraktil As Double = Output(0)
+        Dim hojfraktil As Double = Output(1)
+        Dim max As Double = Output(4)
         Dim i As Integer = 0
         Dim dview As New DataView(dt)
 
