@@ -339,9 +339,9 @@
         '*******************************************************************
         '**                 Calculates tukeys fences                      **
         '*******************************************************************
-        Dim TukeyQ1 As Integer
-        Dim TukeyQ2 As Integer
-        Dim Q1Q2() As Integer
+        Dim TukeyQ1 As Double
+        Dim TukeyQ2 As Double
+        Dim Q1Q2() As Double
         Dim dview As New DataView(dt)
 
         dview.RowFilter = "_Include_ = True"
@@ -367,7 +367,7 @@
         '*******************************************************************
         '**       Removes outliers based on tukeys fences                 **
         '*******************************************************************
-        Dim TukeyQ1Q2() As Integer = TukeyFences(dt)
+        Dim TukeyQ1Q2() As Double = TukeyFences(dt)
         Dim Q1 As Double = TukeyQ1Q2(0)
         Dim Q2 As Double = TukeyQ1Q2(1)
         Dim OutliersNr As Integer
