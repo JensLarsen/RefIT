@@ -164,7 +164,7 @@
             Mainmenu.Progress_TXT.Text = "Analyzing Data"
             Mainmenu.Progress_PB.Value = 0
 
-            If dt.Rows.Count - 1 > 0 Then
+            If dt.Rows.Count > 0 Then
                 PerQ = Percentiles(dt)
 
                 For r As Integer = 0 To dt.Rows.Count - 1
@@ -253,19 +253,19 @@
         '**          Methods taken from wikipedia                **
         '**********************************************************
         Dim Nn As Integer = dt.Rows.Count - 1
-        Dim n(2) As Double
+        Dim n(1) As Double
         Dim LF As Double = Mainmenu.LavFrac_Nr.Value / 100
         Dim HF As Double = Mainmenu.HojFrac_Nr.Value / 100
         Dim LowP As Double 'Lower percentile
         Dim HighP As Double 'High percentile
-        Dim v1(2) As Double
-        Dim v2(2) As Double
-        Dim k(2) As Double
-        Dim d(2) As Double
+        Dim v1(1) As Double
+        Dim v2(1) As Double
+        Dim k(1) As Double
+        Dim d(1) As Double
 
-        Dim min As Double = dt.Rows(0).Item("_Result_")
-        Dim max As Double = dt.Rows(Nn).Item("_Result_")
-        Dim median As Double = dt.Rows(Nn * 0.5).Item("_Result_")
+        Dim min As Double = Math.Round(dt.Rows(0).Item("_Result_"), 2)
+        Dim max As Double = Math.Round(dt.Rows(Nn).Item("_Result_"), 2)
+        Dim median As Double = Math.Round(dt.Rows(Nn * 0.5).Item("_Result_"), 2)
 
         Dim Output() As Double
 
@@ -273,28 +273,30 @@
 
             Select Case Mainmenu.PerMeth_CBX.SelectedItem
                 Case "Interpolated C=0 - Excel after 2013" 'according to Wikipedia
-                    n(1) = (LF) * (Nn + 1)
-                    n(2) = (HF) * (Nn + 1)
-                    k(1) = CInt(Fix(n(1)))
-                    k(2) = CInt(Fix(n(2)))
+                    n(0) = (LF) * (Nn + 1)
+                    n(1) = (HF) * (Nn + 1)
+                    k(0) = Fix(n(0))
+                    k(1) = Fix(n(1))
+                    d(0) = n(0) - k(0)
                     d(1) = n(1) - k(1)
-                    d(2) = n(2) - k(2)
-                    LowP = dt.Rows(k(1) - 1).Item("_Result_") + d(1) * (dt.Rows(k(1)).Item("_Result_") - dt.Rows(k(1) - 1).Item("_Result_"))
-                    HighP = dt.Rows(k(2) - 1).Item("_Result_") + d(2) * (dt.Rows(k(2)).Item("_Result_") - dt.Rows(k(2) - 1).Item("_Result_"))
+                    LowP = dt.Rows(k(0) - 1).Item("_Result_") + d(0) * (dt.Rows(k(0)).Item("_Result_") - dt.Rows(k(0) - 1).Item("_Result_"))
+                    HighP = dt.Rows(k(1) - 1).Item("_Result_") + d(1) * (dt.Rows(k(1)).Item("_Result_") - dt.Rows(k(1) - 1).Item("_Result_"))
                 Case "Interpolated C=1 - Excel to 2013" 'according to Wikipedia
-                    n(1) = (LF) * (Nn - 1) + 1
-                    n(2) = (HF) * (Nn - 1) + 1
-                    k(1) = CInt(Fix(n(1)))
-                    k(2) = CInt(Fix(n(2)))
+                    n(0) = (LF) * (Nn - 1) + 1
+                    n(1) = (HF) * (Nn - 1) + 1
+                    k(0) = Fix(n(0))
+                    k(1) = Fix(n(1))
+                    d(0) = n(0) - k(0)
                     d(1) = n(1) - k(1)
-                    d(2) = n(2) - k(2)
-                    LowP = dt.Rows(k(1) - 1).Item("_Result_") + d(1) * (dt.Rows(k(1)).Item("_Result_") - dt.Rows(k(1) - 1).Item("_Result_"))
-                    HighP = dt.Rows(k(2) - 1).Item("_Result_") + d(2) * (dt.Rows(k(2)).Item("_Result_") - dt.Rows(k(2) - 1).Item("_Result_"))
+                    LowP = dt.Rows(k(0) - 1).Item("_Result_") + d(0) * (dt.Rows(k(0)).Item("_Result_") - dt.Rows(k(0) - 1).Item("_Result_"))
+                    HighP = dt.Rows(k(1) - 1).Item("_Result_") + d(1) * (dt.Rows(k(1)).Item("_Result_") - dt.Rows(k(1) - 1).Item("_Result_"))
                 Case "Nearest-Rank"
-                    n(1) = CInt((Mainmenu.LavFrac_Nr.Value / 100) * dt.Rows.Count - 1)
-                    n(2) = CInt((Mainmenu.HojFrac_Nr.Value / 100) * dt.Rows.Count - 1)
-                    LowP = dt.Rows(n(1)).Item("_Result _")
-                    HighP = dt.Rows(n(2)).Item("_Result_")
+                    n(0) = Math.Round(LF * Nn, 0)
+                    n(1) = Math.Round(HF * Nn, 0)
+
+                    LowP = dt.Rows(n(0)).Item("_Result_")
+                    HighP = dt.Rows(n(1)).Item("_Result_")
+
                 Case Else
 
             End Select
@@ -354,7 +356,7 @@
             TukeyQ1 = dt2.Rows(Math.Round(0.25 * dview.Count, 0)).Item("_Result_") 'Lower fence
             TukeyQ2 = dt2.Rows(Math.Round(0.75 * dview.Count, 0)).Item("_Result_") 'Upper fence
 
-            Q1Q2 = {CInt(TukeyQ1 - 1.5 * (TukeyQ2 - TukeyQ1)), CInt(TukeyQ2 + 1.5 * (TukeyQ2 - TukeyQ1))}
+            Q1Q2 = {TukeyQ1 - 1.5 * (TukeyQ2 - TukeyQ1), TukeyQ2 + 1.5 * (TukeyQ2 - TukeyQ1)}
 
         Catch ex As Exception
             LogFejl(ex.ToString)

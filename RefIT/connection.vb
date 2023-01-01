@@ -5,10 +5,15 @@ Public Module Connection
 
     Public Sub LogFejl(ByVal fejl As String)
 
+
         Dim filename As String = String.Format("{0}\", Environment.CurrentDirectory) & "fejllog.txt"
 
         IO.File.AppendAllText(filename, String.Format("{0}[{1}]{2}", Environment.NewLine, DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss"), fejl.ToString()))
-        Sendmessage("RefIT : Ny registreret fejl", fejl, True)
+        If My.Settings.SendMail = True Then
+            Sendmessage("RefIT : Ny registreret fejl", fejl, True)
+        Else
+            MsgBox("RefIT : Ny registreret fejl" & vbNewLine & fejl)
+        End If
 
     End Sub
 

@@ -27,6 +27,7 @@ Partial Class SetupMain
         Me.Afbryd_BTN = New System.Windows.Forms.Button()
         Me.Email_TXT = New System.Windows.Forms.TextBox()
         Me.Label2 = New System.Windows.Forms.Label()
+        Me.Errormail_CHK = New System.Windows.Forms.CheckBox()
         Me.SuspendLayout()
         '
         'Gem_BTN
@@ -49,7 +50,7 @@ Partial Class SetupMain
         '
         'Email_TXT
         '
-        Me.Email_TXT.Location = New System.Drawing.Point(17, 48)
+        Me.Email_TXT.Location = New System.Drawing.Point(17, 70)
         Me.Email_TXT.Name = "Email_TXT"
         Me.Email_TXT.Size = New System.Drawing.Size(204, 20)
         Me.Email_TXT.TabIndex = 23
@@ -57,17 +58,28 @@ Partial Class SetupMain
         'Label2
         '
         Me.Label2.AutoSize = True
-        Me.Label2.Location = New System.Drawing.Point(14, 32)
+        Me.Label2.Location = New System.Drawing.Point(14, 54)
         Me.Label2.Name = "Label2"
         Me.Label2.Size = New System.Drawing.Size(154, 13)
         Me.Label2.TabIndex = 24
         Me.Label2.Text = "Software error notification email"
+        '
+        'Errormail_CHK
+        '
+        Me.Errormail_CHK.AutoSize = True
+        Me.Errormail_CHK.Location = New System.Drawing.Point(17, 21)
+        Me.Errormail_CHK.Name = "Errormail_CHK"
+        Me.Errormail_CHK.Size = New System.Drawing.Size(96, 17)
+        Me.Errormail_CHK.TabIndex = 25
+        Me.Errormail_CHK.Text = "Send error mail"
+        Me.Errormail_CHK.UseVisualStyleBackColor = True
         '
         'SetupMain
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.ClientSize = New System.Drawing.Size(237, 141)
+        Me.Controls.Add(Me.Errormail_CHK)
         Me.Controls.Add(Me.Label2)
         Me.Controls.Add(Me.Email_TXT)
         Me.Controls.Add(Me.Afbryd_BTN)
@@ -99,4 +111,5 @@ Partial Class SetupMain
     Friend WithEvents Status_TXT As TextBox
     Friend WithEvents Email_TXT As TextBox
     Friend WithEvents Label2 As Label
+    Friend WithEvents Errormail_CHK As CheckBox
 End Class

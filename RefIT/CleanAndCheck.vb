@@ -14,13 +14,15 @@
     Public Function Rens(dt As DataTable)
         '***************************************************************************
         '**                        Cleans the dataset                             **
+        '**Takes the Original datatable that is loaded, cleans it and returns the **
+        '**cleaned datatable
         '***************************************************************************
 
-        Dim UdenFor As Integer
-        Dim Iku As Integer
-        Dim Inkluderet As Integer
+        Dim UdenFor As Integer 'results marked as > or < in the analysis 
+        Dim Iku As Integer 'not finished or approved analysis results
+        Dim Inkluderet As Integer 'verified and approved samples 
 
-
+        'includes additional columns to the datatable, to copy verified data to
         dt.Columns.Add("_Include_", GetType(Boolean))
         dt.Columns.Add("_Analysis_", GetType(String))
         dt.Columns.Add("_Analysis_Date_", GetType(Date))
@@ -46,7 +48,7 @@
                         Iku = Iku + 1
                     End If
                     dt.Rows(r).Delete()
-                Else
+                Else 'this is only experimental and not in version 1 - it would allow the inclusion of < as a zero result
                     If My.Settings.IncludeZero = False And CInt(dt.Rows(r).Item(My.Settings.Resultat)) = 0 Then
                         dt.Rows(r).Delete()
                     Else
@@ -59,6 +61,9 @@
                 Application.DoEvents()
             Next
 
+            CleanMissingAnalytesandID(dt, Iku, Inkluderet) 'removes empty values for Analyte name and Patient ID
+
+            'Deletes the original columns containing results and analysis name
             dt.Columns.Remove(My.Settings.Resultat)
             dt.Columns.Remove(My.Settings.Kvantitet)
 
@@ -66,6 +71,7 @@
             Mainmenu.Udenmaal_LBL.Text = UdenFor
             Mainmenu.Udentid_LBL.Text = Inkluderet
 
+            'writes data to the info graph
             Mainmenu.InfoChart.Series("Status").Points.Clear()
 
             Mainmenu.InfoChart.Titles(0).Text = "Import Statistics"
@@ -105,6 +111,7 @@
                 Else
                     dt.Rows(r).Delete()
                 End If
+
                 Mainmenu.Progress_PB.PerformStep()
                 Application.DoEvents()
             Next
@@ -118,5 +125,17 @@
         Return dt
 
     End Function
+
+    Public Sub CleanMissingAnalytesandID(ByRef dt As DataTable, byref iku As Integer, byref inkluderet As integer)
+
+        For r As Integer = dt.Rows.Count - 1 To 0 Step -1
+            '***********Deletes rows with blank analysis and Patient ID******************
+            If dt.Rows(r)(My.Settings.Kvantitet.ToString) = "" Or dt.Rows(r)(My.Settings.CPR.ToString) = "" Then
+                dt.Rows(r).Delete()
+                iku = iku + 1
+                inkluderet = inkluderet - 1
+            End If
+        Next r
+    End Sub
 
 End Module

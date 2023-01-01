@@ -233,6 +233,18 @@ Namespace My
                 Me("PerMethod") = value
             End Set
         End Property
+        
+        <Global.System.Configuration.UserScopedSettingAttribute(),  _
+         Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
+         Global.System.Configuration.DefaultSettingValueAttribute("False")>  _
+        Public Property SendMail() As Boolean
+            Get
+                Return CType(Me("SendMail"),Boolean)
+            End Get
+            Set
+                Me("SendMail") = value
+            End Set
+        End Property
     End Class
 End Namespace
 

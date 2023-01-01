@@ -47,5 +47,8 @@
     <Setting Name="PerMethod" Type="System.String" Scope="User">
       <Value Profile="(Default)">C=0 - Excel after v. 2013</Value>
     </Setting>
+    <Setting Name="SendMail" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
   </Settings>
 </SettingsFile>
