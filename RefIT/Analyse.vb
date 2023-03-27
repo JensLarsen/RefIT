@@ -227,6 +227,8 @@
         Select Case Mainmenu.Model_CBX.SelectedItem
             Case "TDM model"
                 MethodName = "TDM - "
+            Case "TDM model -last sample"
+                MethodName = "TDM minus last - "
             Case "First result from patient"
                 MethodName = "First sample - "
             Case "Last result from patient"
