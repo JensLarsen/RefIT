@@ -1,7 +1,7 @@
 ﻿Option Explicit On
 
 '    RefIT - Reference Ranges for Therapeutic Drug Monitoring
-'    Copyright(C) 2022 v. 1.0 Jens Borggaard Larsen - jen7lar@gmail.com
+'    Copyright(C) 2023 v. 1.1 Jens Borggaard Larsen - jen7lar@gmail.com
 '
 '    This program Is free software: you can redistribute it And/Or modify
 '    it under the terms Of the GNU General Public License As published by
@@ -287,7 +287,7 @@ Public Class Mainmenu
                 NyTabel = selectrows.CopyToDataTable()
 
                 Select Case Me.Model_CBX.SelectedItem
-                    Case "TDM model"
+                    Case "TDM model", "TDM model -last sample"
                         NyTabel = TDMmodel(NyTabel)
                     Case "First result from patient", "Last result from patient"
                         NyTabel = FirstLastmodel(NyTabel)
@@ -388,6 +388,10 @@ Public Class Mainmenu
                             End If
                             Progress_PB.PerformStep()
                         Next
+                        If Me.Model_CBX.SelectedItem = "TDM model -last sample" Then
+                            PreRow.Item("_Include_") = False
+                            PreRow.Item("_Comment_") = "Last sample removed"
+                        End If
                     End If
                     Progress_PB.PerformStep()
                     Application.DoEvents()
