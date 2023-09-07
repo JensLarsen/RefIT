@@ -421,10 +421,7 @@
 </value>
   </data>
   <data name="TextBoxDescription.Text" xml:space="preserve">
-    <value>RefIT - Reference Ranges for Therapeutic Drug Monitoring
-Copyright(C) 2022  Jens Borggaard Larsen - jen7lar@gmail.com
-
-This program Is free software: you can redistribute it And/Or modify
+    <value>This program Is free software: you can redistribute it And/Or modify
 it under the terms Of the GNU General Public License As published by
 the Free Software Foundation, either version 3 Of the License, Or
 (at your option) any later version.

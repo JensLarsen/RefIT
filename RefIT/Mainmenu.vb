@@ -1131,4 +1131,9 @@ Public Class Mainmenu
             Me.DataPlot.Series("Outliers").Enabled = False
         End If
     End Sub
+
+    Private Sub PatientMinmaxToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles PatientMinmaxToolStripMenuItem.Click
+        patients_min_max.Show()
+
+    End Sub
 End Class

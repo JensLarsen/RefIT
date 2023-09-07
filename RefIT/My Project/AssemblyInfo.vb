@@ -7,11 +7,11 @@ Imports System.Runtime.InteropServices
 
 ' Review the values of the assembly attributes
 
-<Assembly: AssemblyTitle("(c) 2022 - Borggaard Automated Science")>
-<Assembly: AssemblyDescription("RefIT - Reference Ranges for Therapeutic Drug Monitoring")>
-<Assembly: AssemblyCompany("Borggaard Automated Science")>
+<Assembly: AssemblyTitle("RefIT")>
+<Assembly: AssemblyDescription("Reference Ranges for Therapeutic Drug Monitoring")>
+<Assembly: AssemblyCompany("- Jens Borggaard Larsen -")>
 <Assembly: AssemblyProduct("RefIT")>
-<Assembly: AssemblyCopyright("Published under GPL")>
+<Assembly: AssemblyCopyright("(c) 2023 - Published under GPL")>
 <Assembly: AssemblyTrademark("")>
 
 <Assembly: ComVisible(False)>
