@@ -52,7 +52,7 @@
                     If My.Settings.IncludeZero = False And CInt(dt.Rows(r).Item(My.Settings.Resultat)) = 0 Then
                         dt.Rows(r).Delete()
                     Else
-                        dt.Rows(r).Item("_Result_") = CDbl(dt.Rows(r).Item(My.Settings.Resultat))
+                        dt.Rows(r).Item("_Result_") = CheckNr(dt.Rows(r).Item(My.Settings.Resultat).tostring)
                         dt.Rows(r).Item("_Analysis_") = dt.Rows(r).Item(My.Settings.Kvantitet)
                     End If
                     Inkluderet = Inkluderet + 1
@@ -96,6 +96,38 @@
 
         Return dt
     End Function
+
+Private Function CheckNr(Value As string) As Double
+
+Dim decimalSeparator As String = Globalization.CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator
+Dim rv As double
+
+rv = Value.Replace(".", decimalSeparator ).Replace(",", decimalSeparator )
+
+        'msgbox(" Value - " & Value & " Rv - "&rv)
+Return rv
+
+
+'    Dim style As NumberStyles = NumberStyles.AllowThousands Or NumberStyles.AllowDecimalPoint
+ '   Dim culture As CultureInfo = CultureInfo.InvariantCulture
+  '  Dim rv As Double
+
+   ' If Double.TryParse(value, style, culture, rv) Then
+    '    Debug.WriteLine(",.Converted '{0}' to {1}.", value, rv)
+   ' Else
+    '    Dim styleES As NumberStyles = NumberStyles.AllowThousands Or NumberStyles.AllowDecimalPoint
+     '   Dim cultureES As CultureInfo = CultureInfo.CreateSpecificCulture("es-ES")
+
+      '  If Double.TryParse(value, styleES, cultureES, rv) Then
+       '     Debug.WriteLine(".,Converted '{0}' to {1}.", value, rv)
+        'Else
+         '   Throw New ArgumentException
+        'End If
+    'End If
+    'Return rv
+End Function
+    
+    
     Public Function Datokontrol(dt As DataTable)
         '***************************************************************************
         '**                    Check dates and deletes row if error               **

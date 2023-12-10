@@ -10,9 +10,9 @@ Public Module Connection
 
         IO.File.AppendAllText(filename, String.Format("{0}[{1}]{2}", Environment.NewLine, DateTime.Now.ToString("MM-dd-yyyy hh:mm:ss"), fejl.ToString()))
         If My.Settings.SendMail = True Then
-            Sendmessage("RefIT : Ny registreret fejl", fejl, True)
+            Sendmessage("RefIT : New error registred", fejl, True)
         Else
-            MsgBox("RefIT : Ny registreret fejl" & vbNewLine & fejl)
+            MsgBox("RefIT : New error Registred" & vbNewLine & fejl)
         End If
 
     End Sub
@@ -31,7 +31,7 @@ Public Module Connection
             OutlookMessage = DirectCast(AppOutlook.CreateItem(outlook.OlItemType.olMailItem), outlook.MailItem)
             Dim Recipents As outlook.Recipients = OutlookMessage.Recipients
             If Fejl = True Then
-                Emessagebody = Emessagebody & vbCrLf & vbCrLf & "Med Venlig Hilsen" & vbCrLf & Environment.UserName
+                Emessagebody = Emessagebody & vbCrLf & vbCrLf & "Sincerely" & vbCrLf & Environment.UserName
                 EmailAdr = My.Settings.Notificationemail
                 Recipents.Add(My.Settings.Notificationemail)
             End If
@@ -45,7 +45,7 @@ Public Module Connection
             End If
 
         Catch ex As Exception
-            MessageBox.Show("Emailen kunne ikke sendes. " & vbNewLine & "Kontroller email adresse i setup.")
+            MessageBox.Show("The email was not send. " & vbNewLine & "Please check the email adresse in the setup.")
             LogFejl(ex.ToString)
         Finally
             OutlookMessage = Nothing
@@ -60,7 +60,7 @@ Public Module Connection
             Dim EmailTo As New System.Net.Mail.MailAddress(Email)
             ValidEmail = True
         Catch ex As Exception
-            MsgBox("Kontrollere at email adresser er tilstede og skrevet korrekt i opsætningen.")
+            MsgBox("Please check that a correct email for submitting bug reports are present in the setup.")
             ValidEmail = False
         End Try
 

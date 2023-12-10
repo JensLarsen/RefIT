@@ -236,7 +236,7 @@ Public Class Mainmenu
             Catch ex As Exception
                 LogFejl(ex.ToString)
                 Me.UseWaitCursor = False
-                MsgBox("Error while importing file!")
+                MsgBox("Error while importing file!" & vbNewLine & "Please check that the columns and format of import file is correct.")
             End Try
             Me.UseWaitCursor = False
         End If
@@ -333,7 +333,7 @@ Public Class Mainmenu
 
         Catch ex As Exception
             LogFejl(ex.ToString)
-            MsgBox("Error in Kvantiteter!")
+            'MsgBox("Error in Kvantiteter!")
         End Try
     End Function
 
@@ -1113,7 +1113,7 @@ Public Class Mainmenu
     End Sub
 
     Private Sub Comedic_BTN_Click(sender As Object, e As EventArgs) Handles Comedic_BTN.Click
-        MsgBox("Feature is ready in v.2.0.")
+        MsgBox("Feature under development")
     End Sub
 
     Private Sub Excluded_CHK_CheckedChanged(sender As Object, e As EventArgs) Handles Excluded_CHK.CheckedChanged

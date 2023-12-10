@@ -320,15 +320,20 @@
         '**       Calculates the standard deviation of the dataset        **
         '*******************************************************************
 
-        Dim SD As Double
-        Dim uppser As Double
+        Dim SD As Double '= 0.0
+        Dim uppser As Double '= 0.0
 
         Try
             For Each dt As DataRow In Table.Rows
-                uppser = uppser + (dt.Item("_Result_") - middel) ^ 2
+                If dt.Item("_Result_") Is DBNull.Value Then 'IMPORTANT! SOME RECORD HAS NULL VALUE SO MUST ADD A ZERO
+                    uppser += 0
+                Else
+                    uppser += (dt.Item("_Result_") - middel) ^ 2
+                End If
+
             Next
 
-            SD = Math.Sqrt(uppser / Table.Rows.Count - 2)
+            SD = Math.Sqrt(uppser / (Table.Rows.Count - 1))
 
         Catch ex As Exception
             LogFejl(ex.ToString)
