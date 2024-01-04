@@ -10,8 +10,8 @@ The following is a list of features.
 •	Automatically verifies date of analysis on import.
 •	Automatically identifies and anonymize patient ID’s when Danish social security numbers are used. 
 •	Automatically calculates age and gender based on Danish social security number.
-•	Checks for missing age and gender data when importing.
-•	Provides four different models for selecting data when calculating reference ranges. 
+•	Checks for missing age and sex data of the patients when importing.
+•	Provides five different models for selecting data when calculating reference ranges; All data from each patient, first/last sample result from each patient, and TDM model/TDM - last sample. 
 •	Provides settings for selection of age group and gender when calculating reference ranges.
 •	Provides settings for selection of time range of samples.
 •	Provides selection of percentile range for calculating therapeutic reference ranges, and three modes of 
@@ -19,16 +19,16 @@ calculating the percentile.
 •	Provides calculation of reference ranges based on -/+2 standard deviations.
 •	Provides basic statistics like average, median, min/max.
 •	Provides removal of outliers based on Tukey’s fences.
-•	Provides visualization of all sample results by data plot, percentile plot and normal distribution plot.
+•	Provides visualization of all sample results by data plot, percentile plot and normal distribution plot. In addition a plot for visualization of individuel sample results from each patient.
 •	Export of reports as excel file, or by printing.
 •	Export of processed data as excel file.
 •	Export of all graphical views as high resolution images. 
 
 Comment on decimal number setting:
-Numbering in the excel import file can be either “,” or “.” Please see attached demodata file for correct organization of data.
+Numbering in the excel import file can be either “,” or “.” Please see attached demodata file for correct organization of dataset.
 
 What algorithms do the program use:
-RefIT provides algorithm‘s for selecting population based datasets. The models are described in the documentation, and in the paper “Automated inter-laboratory comparison of therapeutic drug monitoring data and its use for evaluation of published therapeutic reference ranges“ by Jens Borggaard Larsen et al. 2023 (in preparation).
+RefIT provides algorithm‘s for selecting population based datasets. The models are described in the documentation, and in the paper by Larsen JB, Hoffmann-Lücke E, Aaslo PH, Jørgensen NR, Greibe E. Automated Interlaboratory Comparison of Therapeutic Drug Monitoring Data and Its Use for Evaluation of Published Therapeutic Reference Ranges. Pharmaceutics. 2023 Feb 16;15(2):673. doi: 10.3390/pharmaceutics15020673. PMID: 36839995; PMCID: PMC9964937.
 The build in function for calculating percentiles are based on linear interpolation second and third variant (C=0, C=1) method as described https://en.wikipedia.org/wiki/Percentile#The_linear_interpolation_between_closest_ranks_method.
 As the program use the datatype double for this calculation, there is a small difference when calculating, compared to excel, due to rounding. 
 In addition RefIT has build in removal of outliers, based on Tukey’s fences (Interquartile range method). https://en.wikipedia.org/wiki/Outlier
@@ -37,8 +37,8 @@ Known bugs:
 See documentation.
 
 Distribution:
-The RefIT v. 1.2 program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+The RefIT v. 1.3 program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
-© Jens Borggaard Larsen 2023.
+© Jens Borggaard Larsen 2024.
 
