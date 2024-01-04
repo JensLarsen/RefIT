@@ -102,7 +102,7 @@ Partial Class About_Box
         Me.LabelVersion.Name = "LabelVersion"
         Me.LabelVersion.Size = New System.Drawing.Size(257, 17)
         Me.LabelVersion.TabIndex = 0
-        Me.LabelVersion.Text = "Version 1.1"
+        Me.LabelVersion.Text = "Version 1.3"
         Me.LabelVersion.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         'LabelCopyright
@@ -114,7 +114,7 @@ Partial Class About_Box
         Me.LabelCopyright.Name = "LabelCopyright"
         Me.LabelCopyright.Size = New System.Drawing.Size(257, 17)
         Me.LabelCopyright.TabIndex = 0
-        Me.LabelCopyright.Text = "Copyright 2023 - Jens Borggaard Larsen"
+        Me.LabelCopyright.Text = "Copyright 2023-24 - Jens Borggaard Larsen"
         Me.LabelCopyright.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
         '
         'LabelCompanyName

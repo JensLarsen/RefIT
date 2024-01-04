@@ -195,6 +195,9 @@
                 SD = 0
             End If
 
+            Mainmenu.Average = Middel
+            Mainmenu.STD = SD
+
             '*******************Copy data to datarow**********************************
             NewRow.Item("From Date") = MinDate.ToShortDateString
             NewRow.Item("To Date") = MaxDate.ToShortDateString
@@ -302,6 +305,10 @@
                 Case Else
 
             End Select
+
+            Mainmenu.LowLimit = LowP 'transfer values to public variable
+            Mainmenu.HighLimit = HighP 'transfer value to public variable for use with min_max_patient
+            Mainmenu.PMedian = median 'transfer value to public variable for use with min_max_patient
 
             Output = {Math.Round(LowP, 2), Math.Round(HighP, 2), min, max, median}
 

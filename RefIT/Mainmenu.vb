@@ -29,9 +29,15 @@ Public Class Mainmenu
     Public Shared CleanDT As New DataTable
     Public Shared MinMaxDate As New DataTable 'Datatable containing dates to analyze from and to for each drug - Filled during import check of dates and
     Public Shared CurrentTable As String 'currently selected datatable that is viewed
-    Public Shared UpdateChart As Boolean 'used with batch calculation, to prevent charting drawing after eache
+    Public Shared UpdateChart As Boolean 'used with batch cal culation, to prevent charting drawing after eache
     Public Shared UpdateDGV As Boolean   'used with batch calculation, to prevent datagridview for being updated after eache
     Public Shared Analyse_DS As New DataSet 'contains calculated datatables
+    Public Shared MinMaxDT As New DataTable ' Datatable to pass to min_max form
+    Public Shared LowLimit As Double 'Public variable holdning current percentile lower limit 
+    Public Shared HighLimit As Double 'Public variable holdning current percentile higher limit 
+    Public Shared PMedian As Double 'Public variable holdning current percentile median 
+    Public Shared Average As Double 'Public variable holdning current plot average 
+    Public Shared STD As Double 'Public variable holdning current plot standard deviation 
 
     Private Sub Mainmenu_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
@@ -1133,7 +1139,15 @@ Public Class Mainmenu
     End Sub
 
     Private Sub PatientMinmaxToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles PatientMinmaxToolStripMenuItem.Click
-        patients_min_max.Show()
+
+        Try
+            If Not IsNothing(DataGridView1.DataSource) Then
+                MinMaxDT = TryCast(DataGridView1.DataSource, DataTable).Copy()
+                patients_min_max.Show()
+            End If
+
+        Catch
+        End Try
 
     End Sub
 End Class

@@ -104,28 +104,9 @@ Dim rv As double
 
 rv = Value.Replace(".", decimalSeparator ).Replace(",", decimalSeparator )
 
-        'msgbox(" Value - " & Value & " Rv - "&rv)
-Return rv
+        Return rv
 
-
-'    Dim style As NumberStyles = NumberStyles.AllowThousands Or NumberStyles.AllowDecimalPoint
- '   Dim culture As CultureInfo = CultureInfo.InvariantCulture
-  '  Dim rv As Double
-
-   ' If Double.TryParse(value, style, culture, rv) Then
-    '    Debug.WriteLine(",.Converted '{0}' to {1}.", value, rv)
-   ' Else
-    '    Dim styleES As NumberStyles = NumberStyles.AllowThousands Or NumberStyles.AllowDecimalPoint
-     '   Dim cultureES As CultureInfo = CultureInfo.CreateSpecificCulture("es-ES")
-
-      '  If Double.TryParse(value, styleES, cultureES, rv) Then
-       '     Debug.WriteLine(".,Converted '{0}' to {1}.", value, rv)
-        'Else
-         '   Throw New ArgumentException
-        'End If
-    'End If
-    'Return rv
-End Function
+    End Function
     
     
     Public Function Datokontrol(dt As DataTable)
